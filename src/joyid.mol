@@ -1,0 +1,65 @@
+import common;
+
+vector LockScriptVec <Bytes>;
+
+struct SubKey {
+  smt_type: Uint16, 
+  sub_type: Byte6,  
+  ext_data: Uint32, 
+  reserved: Byte20,
+}
+struct SubValue {
+  alg_index: Uint16,   
+  pubkey_hash: Byte20,
+  reserved: Byte9,
+  padding: byte,     
+}
+vector SubKeyVec <SubKey>;
+vector SubValueVec<SubValue>;
+table SubKeyEntries {
+  keys: SubKeyVec,
+  values: SubValueVec,
+}
+
+table SubKeyUnlockEntries {
+  ext_data: Uint32,    
+  alg_index: Uint16,    
+  subkey_proof: Bytes, 
+}
+
+
+struct SocialKey {
+  smt_type: Uint16,  
+  sub_type: Byte6,   
+  reserved: Byte24,
+}
+table SocialValue {
+  recovery_mode: byte,   
+  must: byte,
+  total: byte,
+  signers: LockScriptVec,
+}
+vector SocialKeyVec <SocialKey>;
+vector SocialValueVec <SocialValue>;
+table SocialEntries {
+  keys: SocialKeyVec,
+  values: SocialValueVec,
+}
+
+
+table FriendPubkey {
+  unlock_mode: byte,         
+  alg_index: Uint16,    
+  pubkey: Bytes,      
+	signature: Bytes,   
+
+  // only for subkey
+  ext_data: Uint32,   
+  subkey_proof: Bytes,
+}
+vector FriendPubkeyVec <FriendPubkey>;
+table SocialUnlockEntries {
+  social_value: SocialValue, 
+  social_proof: Bytes,     
+  social_friends: FriendPubkeyVec,
+}
