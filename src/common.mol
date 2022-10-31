@@ -1,0 +1,11 @@
+// The `UintN` is used to store a `N` bits unsigned integer
+// as a byte array in big endian.
+
+array Uint16 [byte; 2];
+array Uint32 [byte; 4];
+array Byte6 [byte; 6];
+array Byte9 [byte; 9];
+array Byte20 [byte; 20];
+array Byte24 [byte; 24];
+
+vector Bytes <byte>;
