@@ -4,6 +4,7 @@
 #![allow(warnings)]
 
 pub mod common;
+pub mod extension;
 pub mod joyid;
 pub mod smt;
 

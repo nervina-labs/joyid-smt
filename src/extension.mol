@@ -1,0 +1,17 @@
+import common;
+
+vector LockScriptVec <Bytes>;
+vector ExtensionVec <Byte32>;
+
+table ExtensionLeaves {
+  keys: ExtensionVec,
+  values: ExtensionVec,
+  old_values: ExtensionVec,
+  proof: Bytes,
+}
+
+table ExtensionEntries {
+  leaves: ExtensionLeaves,
+  sub_type: Byte6,
+  raw_data: Bytes,
+}
