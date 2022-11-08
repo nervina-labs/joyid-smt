@@ -39,11 +39,9 @@ table SocialValue {
   total: byte,
   signers: LockScriptVec,
 }
-vector SocialKeyVec <SocialKey>;
-vector SocialValueVec <SocialValue>;
-table SocialEntries {
-  keys: SocialKeyVec,
-  values: SocialValueVec,
+table SocialEntry {
+  key: SocialKey,
+  value: SocialValue,
 }
 
 

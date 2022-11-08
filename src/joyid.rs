@@ -2332,8 +2332,8 @@ impl molecule::prelude::Builder for SocialValueBuilder {
     }
 }
 #[derive(Clone)]
-pub struct SocialKeyVec(molecule::bytes::Bytes);
-impl ::core::fmt::LowerHex for SocialKeyVec {
+pub struct SocialEntry(molecule::bytes::Bytes);
+impl ::core::fmt::LowerHex for SocialEntry {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -2342,626 +2342,16 @@ impl ::core::fmt::LowerHex for SocialKeyVec {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl ::core::fmt::Debug for SocialKeyVec {
+impl ::core::fmt::Debug for SocialEntry {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl ::core::fmt::Display for SocialKeyVec {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{} [", Self::NAME)?;
-        for i in 0..self.len() {
-            if i == 0 {
-                write!(f, "{}", self.get_unchecked(i))?;
-            } else {
-                write!(f, ", {}", self.get_unchecked(i))?;
-            }
-        }
-        write!(f, "]")
-    }
-}
-impl ::core::default::Default for SocialKeyVec {
-    fn default() -> Self {
-        let v: Vec<u8> = vec![0, 0, 0, 0];
-        SocialKeyVec::new_unchecked(v.into())
-    }
-}
-impl SocialKeyVec {
-    pub const ITEM_SIZE: usize = 32;
-    pub fn total_size(&self) -> usize {
-        molecule::NUMBER_SIZE + Self::ITEM_SIZE * self.item_count()
-    }
-    pub fn item_count(&self) -> usize {
-        molecule::unpack_number(self.as_slice()) as usize
-    }
-    pub fn len(&self) -> usize {
-        self.item_count()
-    }
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-    pub fn get(&self, idx: usize) -> Option<SocialKey> {
-        if idx >= self.len() {
-            None
-        } else {
-            Some(self.get_unchecked(idx))
-        }
-    }
-    pub fn get_unchecked(&self, idx: usize) -> SocialKey {
-        let start = molecule::NUMBER_SIZE + Self::ITEM_SIZE * idx;
-        let end = start + Self::ITEM_SIZE;
-        SocialKey::new_unchecked(self.0.slice(start..end))
-    }
-    pub fn as_reader<'r>(&'r self) -> SocialKeyVecReader<'r> {
-        SocialKeyVecReader::new_unchecked(self.as_slice())
-    }
-}
-impl molecule::prelude::Entity for SocialKeyVec {
-    type Builder = SocialKeyVecBuilder;
-    const NAME: &'static str = "SocialKeyVec";
-    fn new_unchecked(data: molecule::bytes::Bytes) -> Self {
-        SocialKeyVec(data)
-    }
-    fn as_bytes(&self) -> molecule::bytes::Bytes {
-        self.0.clone()
-    }
-    fn as_slice(&self) -> &[u8] {
-        &self.0[..]
-    }
-    fn from_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        SocialKeyVecReader::from_slice(slice).map(|reader| reader.to_entity())
-    }
-    fn from_compatible_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        SocialKeyVecReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
-    }
-    fn new_builder() -> Self::Builder {
-        ::core::default::Default::default()
-    }
-    fn as_builder(self) -> Self::Builder {
-        Self::new_builder().extend(self.into_iter())
-    }
-}
-#[derive(Clone, Copy)]
-pub struct SocialKeyVecReader<'r>(&'r [u8]);
-impl<'r> ::core::fmt::LowerHex for SocialKeyVecReader<'r> {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        if f.alternate() {
-            write!(f, "0x")?;
-        }
-        write!(f, "{}", hex_string(self.as_slice()))
-    }
-}
-impl<'r> ::core::fmt::Debug for SocialKeyVecReader<'r> {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{}({:#x})", Self::NAME, self)
-    }
-}
-impl<'r> ::core::fmt::Display for SocialKeyVecReader<'r> {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{} [", Self::NAME)?;
-        for i in 0..self.len() {
-            if i == 0 {
-                write!(f, "{}", self.get_unchecked(i))?;
-            } else {
-                write!(f, ", {}", self.get_unchecked(i))?;
-            }
-        }
-        write!(f, "]")
-    }
-}
-impl<'r> SocialKeyVecReader<'r> {
-    pub const ITEM_SIZE: usize = 32;
-    pub fn total_size(&self) -> usize {
-        molecule::NUMBER_SIZE + Self::ITEM_SIZE * self.item_count()
-    }
-    pub fn item_count(&self) -> usize {
-        molecule::unpack_number(self.as_slice()) as usize
-    }
-    pub fn len(&self) -> usize {
-        self.item_count()
-    }
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-    pub fn get(&self, idx: usize) -> Option<SocialKeyReader<'r>> {
-        if idx >= self.len() {
-            None
-        } else {
-            Some(self.get_unchecked(idx))
-        }
-    }
-    pub fn get_unchecked(&self, idx: usize) -> SocialKeyReader<'r> {
-        let start = molecule::NUMBER_SIZE + Self::ITEM_SIZE * idx;
-        let end = start + Self::ITEM_SIZE;
-        SocialKeyReader::new_unchecked(&self.as_slice()[start..end])
-    }
-}
-impl<'r> molecule::prelude::Reader<'r> for SocialKeyVecReader<'r> {
-    type Entity = SocialKeyVec;
-    const NAME: &'static str = "SocialKeyVecReader";
-    fn to_entity(&self) -> Self::Entity {
-        Self::Entity::new_unchecked(self.as_slice().to_owned().into())
-    }
-    fn new_unchecked(slice: &'r [u8]) -> Self {
-        SocialKeyVecReader(slice)
-    }
-    fn as_slice(&self) -> &'r [u8] {
-        self.0
-    }
-    fn verify(slice: &[u8], _compatible: bool) -> molecule::error::VerificationResult<()> {
-        use molecule::verification_error as ve;
-        let slice_len = slice.len();
-        if slice_len < molecule::NUMBER_SIZE {
-            return ve!(Self, HeaderIsBroken, molecule::NUMBER_SIZE, slice_len);
-        }
-        let item_count = molecule::unpack_number(slice) as usize;
-        if item_count == 0 {
-            if slice_len != molecule::NUMBER_SIZE {
-                return ve!(Self, TotalSizeNotMatch, molecule::NUMBER_SIZE, slice_len);
-            }
-            return Ok(());
-        }
-        let total_size = molecule::NUMBER_SIZE + Self::ITEM_SIZE * item_count;
-        if slice_len != total_size {
-            return ve!(Self, TotalSizeNotMatch, total_size, slice_len);
-        }
-        Ok(())
-    }
-}
-#[derive(Debug, Default)]
-pub struct SocialKeyVecBuilder(pub(crate) Vec<SocialKey>);
-impl SocialKeyVecBuilder {
-    pub const ITEM_SIZE: usize = 32;
-    pub fn set(mut self, v: Vec<SocialKey>) -> Self {
-        self.0 = v;
-        self
-    }
-    pub fn push(mut self, v: SocialKey) -> Self {
-        self.0.push(v);
-        self
-    }
-    pub fn extend<T: ::core::iter::IntoIterator<Item = SocialKey>>(mut self, iter: T) -> Self {
-        for elem in iter {
-            self.0.push(elem);
-        }
-        self
-    }
-    pub fn replace(&mut self, index: usize, v: SocialKey) -> Option<SocialKey> {
-        self.0
-            .get_mut(index)
-            .map(|item| ::core::mem::replace(item, v))
-    }
-}
-impl molecule::prelude::Builder for SocialKeyVecBuilder {
-    type Entity = SocialKeyVec;
-    const NAME: &'static str = "SocialKeyVecBuilder";
-    fn expected_length(&self) -> usize {
-        molecule::NUMBER_SIZE + Self::ITEM_SIZE * self.0.len()
-    }
-    fn write<W: molecule::io::Write>(&self, writer: &mut W) -> molecule::io::Result<()> {
-        writer.write_all(&molecule::pack_number(self.0.len() as molecule::Number))?;
-        for inner in &self.0[..] {
-            writer.write_all(inner.as_slice())?;
-        }
-        Ok(())
-    }
-    fn build(&self) -> Self::Entity {
-        let mut inner = Vec::with_capacity(self.expected_length());
-        self.write(&mut inner)
-            .unwrap_or_else(|_| panic!("{} build should be ok", Self::NAME));
-        SocialKeyVec::new_unchecked(inner.into())
-    }
-}
-pub struct SocialKeyVecIterator(SocialKeyVec, usize, usize);
-impl ::core::iter::Iterator for SocialKeyVecIterator {
-    type Item = SocialKey;
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.1 >= self.2 {
-            None
-        } else {
-            let ret = self.0.get_unchecked(self.1);
-            self.1 += 1;
-            Some(ret)
-        }
-    }
-}
-impl ::core::iter::ExactSizeIterator for SocialKeyVecIterator {
-    fn len(&self) -> usize {
-        self.2 - self.1
-    }
-}
-impl ::core::iter::IntoIterator for SocialKeyVec {
-    type Item = SocialKey;
-    type IntoIter = SocialKeyVecIterator;
-    fn into_iter(self) -> Self::IntoIter {
-        let len = self.len();
-        SocialKeyVecIterator(self, 0, len)
-    }
-}
-impl<'r> SocialKeyVecReader<'r> {
-    pub fn iter<'t>(&'t self) -> SocialKeyVecReaderIterator<'t, 'r> {
-        SocialKeyVecReaderIterator(&self, 0, self.len())
-    }
-}
-pub struct SocialKeyVecReaderIterator<'t, 'r>(&'t SocialKeyVecReader<'r>, usize, usize);
-impl<'t: 'r, 'r> ::core::iter::Iterator for SocialKeyVecReaderIterator<'t, 'r> {
-    type Item = SocialKeyReader<'t>;
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.1 >= self.2 {
-            None
-        } else {
-            let ret = self.0.get_unchecked(self.1);
-            self.1 += 1;
-            Some(ret)
-        }
-    }
-}
-impl<'t: 'r, 'r> ::core::iter::ExactSizeIterator for SocialKeyVecReaderIterator<'t, 'r> {
-    fn len(&self) -> usize {
-        self.2 - self.1
-    }
-}
-#[derive(Clone)]
-pub struct SocialValueVec(molecule::bytes::Bytes);
-impl ::core::fmt::LowerHex for SocialValueVec {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        if f.alternate() {
-            write!(f, "0x")?;
-        }
-        write!(f, "{}", hex_string(self.as_slice()))
-    }
-}
-impl ::core::fmt::Debug for SocialValueVec {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{}({:#x})", Self::NAME, self)
-    }
-}
-impl ::core::fmt::Display for SocialValueVec {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{} [", Self::NAME)?;
-        for i in 0..self.len() {
-            if i == 0 {
-                write!(f, "{}", self.get_unchecked(i))?;
-            } else {
-                write!(f, ", {}", self.get_unchecked(i))?;
-            }
-        }
-        write!(f, "]")
-    }
-}
-impl ::core::default::Default for SocialValueVec {
-    fn default() -> Self {
-        let v: Vec<u8> = vec![4, 0, 0, 0];
-        SocialValueVec::new_unchecked(v.into())
-    }
-}
-impl SocialValueVec {
-    pub fn total_size(&self) -> usize {
-        molecule::unpack_number(self.as_slice()) as usize
-    }
-    pub fn item_count(&self) -> usize {
-        if self.total_size() == molecule::NUMBER_SIZE {
-            0
-        } else {
-            (molecule::unpack_number(&self.as_slice()[molecule::NUMBER_SIZE..]) as usize / 4) - 1
-        }
-    }
-    pub fn len(&self) -> usize {
-        self.item_count()
-    }
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-    pub fn get(&self, idx: usize) -> Option<SocialValue> {
-        if idx >= self.len() {
-            None
-        } else {
-            Some(self.get_unchecked(idx))
-        }
-    }
-    pub fn get_unchecked(&self, idx: usize) -> SocialValue {
-        let slice = self.as_slice();
-        let start_idx = molecule::NUMBER_SIZE * (1 + idx);
-        let start = molecule::unpack_number(&slice[start_idx..]) as usize;
-        if idx == self.len() - 1 {
-            SocialValue::new_unchecked(self.0.slice(start..))
-        } else {
-            let end_idx = start_idx + molecule::NUMBER_SIZE;
-            let end = molecule::unpack_number(&slice[end_idx..]) as usize;
-            SocialValue::new_unchecked(self.0.slice(start..end))
-        }
-    }
-    pub fn as_reader<'r>(&'r self) -> SocialValueVecReader<'r> {
-        SocialValueVecReader::new_unchecked(self.as_slice())
-    }
-}
-impl molecule::prelude::Entity for SocialValueVec {
-    type Builder = SocialValueVecBuilder;
-    const NAME: &'static str = "SocialValueVec";
-    fn new_unchecked(data: molecule::bytes::Bytes) -> Self {
-        SocialValueVec(data)
-    }
-    fn as_bytes(&self) -> molecule::bytes::Bytes {
-        self.0.clone()
-    }
-    fn as_slice(&self) -> &[u8] {
-        &self.0[..]
-    }
-    fn from_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        SocialValueVecReader::from_slice(slice).map(|reader| reader.to_entity())
-    }
-    fn from_compatible_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        SocialValueVecReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
-    }
-    fn new_builder() -> Self::Builder {
-        ::core::default::Default::default()
-    }
-    fn as_builder(self) -> Self::Builder {
-        Self::new_builder().extend(self.into_iter())
-    }
-}
-#[derive(Clone, Copy)]
-pub struct SocialValueVecReader<'r>(&'r [u8]);
-impl<'r> ::core::fmt::LowerHex for SocialValueVecReader<'r> {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        if f.alternate() {
-            write!(f, "0x")?;
-        }
-        write!(f, "{}", hex_string(self.as_slice()))
-    }
-}
-impl<'r> ::core::fmt::Debug for SocialValueVecReader<'r> {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{}({:#x})", Self::NAME, self)
-    }
-}
-impl<'r> ::core::fmt::Display for SocialValueVecReader<'r> {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{} [", Self::NAME)?;
-        for i in 0..self.len() {
-            if i == 0 {
-                write!(f, "{}", self.get_unchecked(i))?;
-            } else {
-                write!(f, ", {}", self.get_unchecked(i))?;
-            }
-        }
-        write!(f, "]")
-    }
-}
-impl<'r> SocialValueVecReader<'r> {
-    pub fn total_size(&self) -> usize {
-        molecule::unpack_number(self.as_slice()) as usize
-    }
-    pub fn item_count(&self) -> usize {
-        if self.total_size() == molecule::NUMBER_SIZE {
-            0
-        } else {
-            (molecule::unpack_number(&self.as_slice()[molecule::NUMBER_SIZE..]) as usize / 4) - 1
-        }
-    }
-    pub fn len(&self) -> usize {
-        self.item_count()
-    }
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-    pub fn get(&self, idx: usize) -> Option<SocialValueReader<'r>> {
-        if idx >= self.len() {
-            None
-        } else {
-            Some(self.get_unchecked(idx))
-        }
-    }
-    pub fn get_unchecked(&self, idx: usize) -> SocialValueReader<'r> {
-        let slice = self.as_slice();
-        let start_idx = molecule::NUMBER_SIZE * (1 + idx);
-        let start = molecule::unpack_number(&slice[start_idx..]) as usize;
-        if idx == self.len() - 1 {
-            SocialValueReader::new_unchecked(&self.as_slice()[start..])
-        } else {
-            let end_idx = start_idx + molecule::NUMBER_SIZE;
-            let end = molecule::unpack_number(&slice[end_idx..]) as usize;
-            SocialValueReader::new_unchecked(&self.as_slice()[start..end])
-        }
-    }
-}
-impl<'r> molecule::prelude::Reader<'r> for SocialValueVecReader<'r> {
-    type Entity = SocialValueVec;
-    const NAME: &'static str = "SocialValueVecReader";
-    fn to_entity(&self) -> Self::Entity {
-        Self::Entity::new_unchecked(self.as_slice().to_owned().into())
-    }
-    fn new_unchecked(slice: &'r [u8]) -> Self {
-        SocialValueVecReader(slice)
-    }
-    fn as_slice(&self) -> &'r [u8] {
-        self.0
-    }
-    fn verify(slice: &[u8], compatible: bool) -> molecule::error::VerificationResult<()> {
-        use molecule::verification_error as ve;
-        let slice_len = slice.len();
-        if slice_len < molecule::NUMBER_SIZE {
-            return ve!(Self, HeaderIsBroken, molecule::NUMBER_SIZE, slice_len);
-        }
-        let total_size = molecule::unpack_number(slice) as usize;
-        if slice_len != total_size {
-            return ve!(Self, TotalSizeNotMatch, total_size, slice_len);
-        }
-        if slice_len == molecule::NUMBER_SIZE {
-            return Ok(());
-        }
-        if slice_len < molecule::NUMBER_SIZE * 2 {
-            return ve!(
-                Self,
-                TotalSizeNotMatch,
-                molecule::NUMBER_SIZE * 2,
-                slice_len
-            );
-        }
-        let offset_first = molecule::unpack_number(&slice[molecule::NUMBER_SIZE..]) as usize;
-        if offset_first % molecule::NUMBER_SIZE != 0 || offset_first < molecule::NUMBER_SIZE * 2 {
-            return ve!(Self, OffsetsNotMatch);
-        }
-        if slice_len < offset_first {
-            return ve!(Self, HeaderIsBroken, offset_first, slice_len);
-        }
-        let mut offsets: Vec<usize> = slice[molecule::NUMBER_SIZE..offset_first]
-            .chunks_exact(molecule::NUMBER_SIZE)
-            .map(|x| molecule::unpack_number(x) as usize)
-            .collect();
-        offsets.push(total_size);
-        if offsets.windows(2).any(|i| i[0] > i[1]) {
-            return ve!(Self, OffsetsNotMatch);
-        }
-        for pair in offsets.windows(2) {
-            let start = pair[0];
-            let end = pair[1];
-            SocialValueReader::verify(&slice[start..end], compatible)?;
-        }
-        Ok(())
-    }
-}
-#[derive(Debug, Default)]
-pub struct SocialValueVecBuilder(pub(crate) Vec<SocialValue>);
-impl SocialValueVecBuilder {
-    pub fn set(mut self, v: Vec<SocialValue>) -> Self {
-        self.0 = v;
-        self
-    }
-    pub fn push(mut self, v: SocialValue) -> Self {
-        self.0.push(v);
-        self
-    }
-    pub fn extend<T: ::core::iter::IntoIterator<Item = SocialValue>>(mut self, iter: T) -> Self {
-        for elem in iter {
-            self.0.push(elem);
-        }
-        self
-    }
-    pub fn replace(&mut self, index: usize, v: SocialValue) -> Option<SocialValue> {
-        self.0
-            .get_mut(index)
-            .map(|item| ::core::mem::replace(item, v))
-    }
-}
-impl molecule::prelude::Builder for SocialValueVecBuilder {
-    type Entity = SocialValueVec;
-    const NAME: &'static str = "SocialValueVecBuilder";
-    fn expected_length(&self) -> usize {
-        molecule::NUMBER_SIZE * (self.0.len() + 1)
-            + self
-                .0
-                .iter()
-                .map(|inner| inner.as_slice().len())
-                .sum::<usize>()
-    }
-    fn write<W: molecule::io::Write>(&self, writer: &mut W) -> molecule::io::Result<()> {
-        let item_count = self.0.len();
-        if item_count == 0 {
-            writer.write_all(&molecule::pack_number(
-                molecule::NUMBER_SIZE as molecule::Number,
-            ))?;
-        } else {
-            let (total_size, offsets) = self.0.iter().fold(
-                (
-                    molecule::NUMBER_SIZE * (item_count + 1),
-                    Vec::with_capacity(item_count),
-                ),
-                |(start, mut offsets), inner| {
-                    offsets.push(start);
-                    (start + inner.as_slice().len(), offsets)
-                },
-            );
-            writer.write_all(&molecule::pack_number(total_size as molecule::Number))?;
-            for offset in offsets.into_iter() {
-                writer.write_all(&molecule::pack_number(offset as molecule::Number))?;
-            }
-            for inner in self.0.iter() {
-                writer.write_all(inner.as_slice())?;
-            }
-        }
-        Ok(())
-    }
-    fn build(&self) -> Self::Entity {
-        let mut inner = Vec::with_capacity(self.expected_length());
-        self.write(&mut inner)
-            .unwrap_or_else(|_| panic!("{} build should be ok", Self::NAME));
-        SocialValueVec::new_unchecked(inner.into())
-    }
-}
-pub struct SocialValueVecIterator(SocialValueVec, usize, usize);
-impl ::core::iter::Iterator for SocialValueVecIterator {
-    type Item = SocialValue;
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.1 >= self.2 {
-            None
-        } else {
-            let ret = self.0.get_unchecked(self.1);
-            self.1 += 1;
-            Some(ret)
-        }
-    }
-}
-impl ::core::iter::ExactSizeIterator for SocialValueVecIterator {
-    fn len(&self) -> usize {
-        self.2 - self.1
-    }
-}
-impl ::core::iter::IntoIterator for SocialValueVec {
-    type Item = SocialValue;
-    type IntoIter = SocialValueVecIterator;
-    fn into_iter(self) -> Self::IntoIter {
-        let len = self.len();
-        SocialValueVecIterator(self, 0, len)
-    }
-}
-impl<'r> SocialValueVecReader<'r> {
-    pub fn iter<'t>(&'t self) -> SocialValueVecReaderIterator<'t, 'r> {
-        SocialValueVecReaderIterator(&self, 0, self.len())
-    }
-}
-pub struct SocialValueVecReaderIterator<'t, 'r>(&'t SocialValueVecReader<'r>, usize, usize);
-impl<'t: 'r, 'r> ::core::iter::Iterator for SocialValueVecReaderIterator<'t, 'r> {
-    type Item = SocialValueReader<'t>;
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.1 >= self.2 {
-            None
-        } else {
-            let ret = self.0.get_unchecked(self.1);
-            self.1 += 1;
-            Some(ret)
-        }
-    }
-}
-impl<'t: 'r, 'r> ::core::iter::ExactSizeIterator for SocialValueVecReaderIterator<'t, 'r> {
-    fn len(&self) -> usize {
-        self.2 - self.1
-    }
-}
-#[derive(Clone)]
-pub struct SocialEntries(molecule::bytes::Bytes);
-impl ::core::fmt::LowerHex for SocialEntries {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        if f.alternate() {
-            write!(f, "0x")?;
-        }
-        write!(f, "{}", hex_string(self.as_slice()))
-    }
-}
-impl ::core::fmt::Debug for SocialEntries {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{}({:#x})", Self::NAME, self)
-    }
-}
-impl ::core::fmt::Display for SocialEntries {
+impl ::core::fmt::Display for SocialEntry {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} {{ ", Self::NAME)?;
-        write!(f, "{}: {}", "keys", self.keys())?;
-        write!(f, ", {}: {}", "values", self.values())?;
+        write!(f, "{}: {}", "key", self.key())?;
+        write!(f, ", {}: {}", "value", self.value())?;
         let extra_count = self.count_extra_fields();
         if extra_count != 0 {
             write!(f, ", .. ({} fields)", extra_count)?;
@@ -2969,15 +2359,17 @@ impl ::core::fmt::Display for SocialEntries {
         write!(f, " }}")
     }
 }
-impl ::core::default::Default for SocialEntries {
+impl ::core::default::Default for SocialEntry {
     fn default() -> Self {
         let v: Vec<u8> = vec![
-            20, 0, 0, 0, 12, 0, 0, 0, 16, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0,
+            71, 0, 0, 0, 12, 0, 0, 0, 44, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 27, 0, 0, 0, 20, 0, 0, 0, 21, 0, 0, 0,
+            22, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0,
         ];
-        SocialEntries::new_unchecked(v.into())
+        SocialEntry::new_unchecked(v.into())
     }
 }
-impl SocialEntries {
+impl SocialEntry {
     pub const FIELD_COUNT: usize = 2;
     pub fn total_size(&self) -> usize {
         molecule::unpack_number(self.as_slice()) as usize
@@ -2995,31 +2387,31 @@ impl SocialEntries {
     pub fn has_extra_fields(&self) -> bool {
         Self::FIELD_COUNT != self.field_count()
     }
-    pub fn keys(&self) -> SocialKeyVec {
+    pub fn key(&self) -> SocialKey {
         let slice = self.as_slice();
         let start = molecule::unpack_number(&slice[4..]) as usize;
         let end = molecule::unpack_number(&slice[8..]) as usize;
-        SocialKeyVec::new_unchecked(self.0.slice(start..end))
+        SocialKey::new_unchecked(self.0.slice(start..end))
     }
-    pub fn values(&self) -> SocialValueVec {
+    pub fn value(&self) -> SocialValue {
         let slice = self.as_slice();
         let start = molecule::unpack_number(&slice[8..]) as usize;
         if self.has_extra_fields() {
             let end = molecule::unpack_number(&slice[12..]) as usize;
-            SocialValueVec::new_unchecked(self.0.slice(start..end))
+            SocialValue::new_unchecked(self.0.slice(start..end))
         } else {
-            SocialValueVec::new_unchecked(self.0.slice(start..))
+            SocialValue::new_unchecked(self.0.slice(start..))
         }
     }
-    pub fn as_reader<'r>(&'r self) -> SocialEntriesReader<'r> {
-        SocialEntriesReader::new_unchecked(self.as_slice())
+    pub fn as_reader<'r>(&'r self) -> SocialEntryReader<'r> {
+        SocialEntryReader::new_unchecked(self.as_slice())
     }
 }
-impl molecule::prelude::Entity for SocialEntries {
-    type Builder = SocialEntriesBuilder;
-    const NAME: &'static str = "SocialEntries";
+impl molecule::prelude::Entity for SocialEntry {
+    type Builder = SocialEntryBuilder;
+    const NAME: &'static str = "SocialEntry";
     fn new_unchecked(data: molecule::bytes::Bytes) -> Self {
-        SocialEntries(data)
+        SocialEntry(data)
     }
     fn as_bytes(&self) -> molecule::bytes::Bytes {
         self.0.clone()
@@ -3028,21 +2420,21 @@ impl molecule::prelude::Entity for SocialEntries {
         &self.0[..]
     }
     fn from_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        SocialEntriesReader::from_slice(slice).map(|reader| reader.to_entity())
+        SocialEntryReader::from_slice(slice).map(|reader| reader.to_entity())
     }
     fn from_compatible_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        SocialEntriesReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
+        SocialEntryReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
     }
     fn new_builder() -> Self::Builder {
         ::core::default::Default::default()
     }
     fn as_builder(self) -> Self::Builder {
-        Self::new_builder().keys(self.keys()).values(self.values())
+        Self::new_builder().key(self.key()).value(self.value())
     }
 }
 #[derive(Clone, Copy)]
-pub struct SocialEntriesReader<'r>(&'r [u8]);
-impl<'r> ::core::fmt::LowerHex for SocialEntriesReader<'r> {
+pub struct SocialEntryReader<'r>(&'r [u8]);
+impl<'r> ::core::fmt::LowerHex for SocialEntryReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -3051,16 +2443,16 @@ impl<'r> ::core::fmt::LowerHex for SocialEntriesReader<'r> {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl<'r> ::core::fmt::Debug for SocialEntriesReader<'r> {
+impl<'r> ::core::fmt::Debug for SocialEntryReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl<'r> ::core::fmt::Display for SocialEntriesReader<'r> {
+impl<'r> ::core::fmt::Display for SocialEntryReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} {{ ", Self::NAME)?;
-        write!(f, "{}: {}", "keys", self.keys())?;
-        write!(f, ", {}: {}", "values", self.values())?;
+        write!(f, "{}: {}", "key", self.key())?;
+        write!(f, ", {}: {}", "value", self.value())?;
         let extra_count = self.count_extra_fields();
         if extra_count != 0 {
             write!(f, ", .. ({} fields)", extra_count)?;
@@ -3068,7 +2460,7 @@ impl<'r> ::core::fmt::Display for SocialEntriesReader<'r> {
         write!(f, " }}")
     }
 }
-impl<'r> SocialEntriesReader<'r> {
+impl<'r> SocialEntryReader<'r> {
     pub const FIELD_COUNT: usize = 2;
     pub fn total_size(&self) -> usize {
         molecule::unpack_number(self.as_slice()) as usize
@@ -3086,31 +2478,31 @@ impl<'r> SocialEntriesReader<'r> {
     pub fn has_extra_fields(&self) -> bool {
         Self::FIELD_COUNT != self.field_count()
     }
-    pub fn keys(&self) -> SocialKeyVecReader<'r> {
+    pub fn key(&self) -> SocialKeyReader<'r> {
         let slice = self.as_slice();
         let start = molecule::unpack_number(&slice[4..]) as usize;
         let end = molecule::unpack_number(&slice[8..]) as usize;
-        SocialKeyVecReader::new_unchecked(&self.as_slice()[start..end])
+        SocialKeyReader::new_unchecked(&self.as_slice()[start..end])
     }
-    pub fn values(&self) -> SocialValueVecReader<'r> {
+    pub fn value(&self) -> SocialValueReader<'r> {
         let slice = self.as_slice();
         let start = molecule::unpack_number(&slice[8..]) as usize;
         if self.has_extra_fields() {
             let end = molecule::unpack_number(&slice[12..]) as usize;
-            SocialValueVecReader::new_unchecked(&self.as_slice()[start..end])
+            SocialValueReader::new_unchecked(&self.as_slice()[start..end])
         } else {
-            SocialValueVecReader::new_unchecked(&self.as_slice()[start..])
+            SocialValueReader::new_unchecked(&self.as_slice()[start..])
         }
     }
 }
-impl<'r> molecule::prelude::Reader<'r> for SocialEntriesReader<'r> {
-    type Entity = SocialEntries;
-    const NAME: &'static str = "SocialEntriesReader";
+impl<'r> molecule::prelude::Reader<'r> for SocialEntryReader<'r> {
+    type Entity = SocialEntry;
+    const NAME: &'static str = "SocialEntryReader";
     fn to_entity(&self) -> Self::Entity {
         Self::Entity::new_unchecked(self.as_slice().to_owned().into())
     }
     fn new_unchecked(slice: &'r [u8]) -> Self {
-        SocialEntriesReader(slice)
+        SocialEntryReader(slice)
     }
     fn as_slice(&self) -> &'r [u8] {
         self.0
@@ -3152,55 +2544,55 @@ impl<'r> molecule::prelude::Reader<'r> for SocialEntriesReader<'r> {
         if offsets.windows(2).any(|i| i[0] > i[1]) {
             return ve!(Self, OffsetsNotMatch);
         }
-        SocialKeyVecReader::verify(&slice[offsets[0]..offsets[1]], compatible)?;
-        SocialValueVecReader::verify(&slice[offsets[1]..offsets[2]], compatible)?;
+        SocialKeyReader::verify(&slice[offsets[0]..offsets[1]], compatible)?;
+        SocialValueReader::verify(&slice[offsets[1]..offsets[2]], compatible)?;
         Ok(())
     }
 }
 #[derive(Debug, Default)]
-pub struct SocialEntriesBuilder {
-    pub(crate) keys: SocialKeyVec,
-    pub(crate) values: SocialValueVec,
+pub struct SocialEntryBuilder {
+    pub(crate) key: SocialKey,
+    pub(crate) value: SocialValue,
 }
-impl SocialEntriesBuilder {
+impl SocialEntryBuilder {
     pub const FIELD_COUNT: usize = 2;
-    pub fn keys(mut self, v: SocialKeyVec) -> Self {
-        self.keys = v;
+    pub fn key(mut self, v: SocialKey) -> Self {
+        self.key = v;
         self
     }
-    pub fn values(mut self, v: SocialValueVec) -> Self {
-        self.values = v;
+    pub fn value(mut self, v: SocialValue) -> Self {
+        self.value = v;
         self
     }
 }
-impl molecule::prelude::Builder for SocialEntriesBuilder {
-    type Entity = SocialEntries;
-    const NAME: &'static str = "SocialEntriesBuilder";
+impl molecule::prelude::Builder for SocialEntryBuilder {
+    type Entity = SocialEntry;
+    const NAME: &'static str = "SocialEntryBuilder";
     fn expected_length(&self) -> usize {
         molecule::NUMBER_SIZE * (Self::FIELD_COUNT + 1)
-            + self.keys.as_slice().len()
-            + self.values.as_slice().len()
+            + self.key.as_slice().len()
+            + self.value.as_slice().len()
     }
     fn write<W: molecule::io::Write>(&self, writer: &mut W) -> molecule::io::Result<()> {
         let mut total_size = molecule::NUMBER_SIZE * (Self::FIELD_COUNT + 1);
         let mut offsets = Vec::with_capacity(Self::FIELD_COUNT);
         offsets.push(total_size);
-        total_size += self.keys.as_slice().len();
+        total_size += self.key.as_slice().len();
         offsets.push(total_size);
-        total_size += self.values.as_slice().len();
+        total_size += self.value.as_slice().len();
         writer.write_all(&molecule::pack_number(total_size as molecule::Number))?;
         for offset in offsets.into_iter() {
             writer.write_all(&molecule::pack_number(offset as molecule::Number))?;
         }
-        writer.write_all(self.keys.as_slice())?;
-        writer.write_all(self.values.as_slice())?;
+        writer.write_all(self.key.as_slice())?;
+        writer.write_all(self.value.as_slice())?;
         Ok(())
     }
     fn build(&self) -> Self::Entity {
         let mut inner = Vec::with_capacity(self.expected_length());
         self.write(&mut inner)
             .unwrap_or_else(|_| panic!("{} build should be ok", Self::NAME));
-        SocialEntries::new_unchecked(inner.into())
+        SocialEntry::new_unchecked(inner.into())
     }
 }
 #[derive(Clone)]
