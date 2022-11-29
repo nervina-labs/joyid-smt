@@ -16,4 +16,4 @@ sparse-merkle-tree = {version = "0.6.1", default_features = false}
 [features]
 default = ["std", "ckb-types"]
 std = []
-no-std = ["molecule"]
+no-std = ["ckb-std", "molecule"]
