@@ -2620,6 +2620,7 @@ impl ::core::fmt::Display for FriendPubkey {
         write!(f, ", {}: {}", "signature", self.signature())?;
         write!(f, ", {}: {}", "ext_data", self.ext_data())?;
         write!(f, ", {}: {}", "subkey_proof", self.subkey_proof())?;
+        write!(f, ", {}: {}", "web_authn_msg", self.web_authn_msg())?;
         let extra_count = self.count_extra_fields();
         if extra_count != 0 {
             write!(f, ", .. ({} fields)", extra_count)?;
@@ -2630,14 +2631,14 @@ impl ::core::fmt::Display for FriendPubkey {
 impl ::core::default::Default for FriendPubkey {
     fn default() -> Self {
         let v: Vec<u8> = vec![
-            47, 0, 0, 0, 28, 0, 0, 0, 29, 0, 0, 0, 31, 0, 0, 0, 35, 0, 0, 0, 39, 0, 0, 0, 43, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            55, 0, 0, 0, 32, 0, 0, 0, 33, 0, 0, 0, 35, 0, 0, 0, 39, 0, 0, 0, 43, 0, 0, 0, 47, 0, 0,
+            0, 51, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         ];
         FriendPubkey::new_unchecked(v.into())
     }
 }
 impl FriendPubkey {
-    pub const FIELD_COUNT: usize = 6;
+    pub const FIELD_COUNT: usize = 7;
     pub fn total_size(&self) -> usize {
         molecule::unpack_number(self.as_slice()) as usize
     }
@@ -2687,8 +2688,14 @@ impl FriendPubkey {
     pub fn subkey_proof(&self) -> Bytes {
         let slice = self.as_slice();
         let start = molecule::unpack_number(&slice[24..]) as usize;
+        let end = molecule::unpack_number(&slice[28..]) as usize;
+        Bytes::new_unchecked(self.0.slice(start..end))
+    }
+    pub fn web_authn_msg(&self) -> Bytes {
+        let slice = self.as_slice();
+        let start = molecule::unpack_number(&slice[28..]) as usize;
         if self.has_extra_fields() {
-            let end = molecule::unpack_number(&slice[28..]) as usize;
+            let end = molecule::unpack_number(&slice[32..]) as usize;
             Bytes::new_unchecked(self.0.slice(start..end))
         } else {
             Bytes::new_unchecked(self.0.slice(start..))
@@ -2727,6 +2734,7 @@ impl molecule::prelude::Entity for FriendPubkey {
             .signature(self.signature())
             .ext_data(self.ext_data())
             .subkey_proof(self.subkey_proof())
+            .web_authn_msg(self.web_authn_msg())
     }
 }
 #[derive(Clone, Copy)]
@@ -2754,6 +2762,7 @@ impl<'r> ::core::fmt::Display for FriendPubkeyReader<'r> {
         write!(f, ", {}: {}", "signature", self.signature())?;
         write!(f, ", {}: {}", "ext_data", self.ext_data())?;
         write!(f, ", {}: {}", "subkey_proof", self.subkey_proof())?;
+        write!(f, ", {}: {}", "web_authn_msg", self.web_authn_msg())?;
         let extra_count = self.count_extra_fields();
         if extra_count != 0 {
             write!(f, ", .. ({} fields)", extra_count)?;
@@ -2762,7 +2771,7 @@ impl<'r> ::core::fmt::Display for FriendPubkeyReader<'r> {
     }
 }
 impl<'r> FriendPubkeyReader<'r> {
-    pub const FIELD_COUNT: usize = 6;
+    pub const FIELD_COUNT: usize = 7;
     pub fn total_size(&self) -> usize {
         molecule::unpack_number(self.as_slice()) as usize
     }
@@ -2812,8 +2821,14 @@ impl<'r> FriendPubkeyReader<'r> {
     pub fn subkey_proof(&self) -> BytesReader<'r> {
         let slice = self.as_slice();
         let start = molecule::unpack_number(&slice[24..]) as usize;
+        let end = molecule::unpack_number(&slice[28..]) as usize;
+        BytesReader::new_unchecked(&self.as_slice()[start..end])
+    }
+    pub fn web_authn_msg(&self) -> BytesReader<'r> {
+        let slice = self.as_slice();
+        let start = molecule::unpack_number(&slice[28..]) as usize;
         if self.has_extra_fields() {
-            let end = molecule::unpack_number(&slice[28..]) as usize;
+            let end = molecule::unpack_number(&slice[32..]) as usize;
             BytesReader::new_unchecked(&self.as_slice()[start..end])
         } else {
             BytesReader::new_unchecked(&self.as_slice()[start..])
@@ -2875,6 +2890,7 @@ impl<'r> molecule::prelude::Reader<'r> for FriendPubkeyReader<'r> {
         BytesReader::verify(&slice[offsets[3]..offsets[4]], compatible)?;
         Uint32Reader::verify(&slice[offsets[4]..offsets[5]], compatible)?;
         BytesReader::verify(&slice[offsets[5]..offsets[6]], compatible)?;
+        BytesReader::verify(&slice[offsets[6]..offsets[7]], compatible)?;
         Ok(())
     }
 }
@@ -2886,9 +2902,10 @@ pub struct FriendPubkeyBuilder {
     pub(crate) signature: Bytes,
     pub(crate) ext_data: Uint32,
     pub(crate) subkey_proof: Bytes,
+    pub(crate) web_authn_msg: Bytes,
 }
 impl FriendPubkeyBuilder {
-    pub const FIELD_COUNT: usize = 6;
+    pub const FIELD_COUNT: usize = 7;
     pub fn unlock_mode(mut self, v: Byte) -> Self {
         self.unlock_mode = v;
         self
@@ -2913,6 +2930,10 @@ impl FriendPubkeyBuilder {
         self.subkey_proof = v;
         self
     }
+    pub fn web_authn_msg(mut self, v: Bytes) -> Self {
+        self.web_authn_msg = v;
+        self
+    }
 }
 impl molecule::prelude::Builder for FriendPubkeyBuilder {
     type Entity = FriendPubkey;
@@ -2925,6 +2946,7 @@ impl molecule::prelude::Builder for FriendPubkeyBuilder {
             + self.signature.as_slice().len()
             + self.ext_data.as_slice().len()
             + self.subkey_proof.as_slice().len()
+            + self.web_authn_msg.as_slice().len()
     }
     fn write<W: molecule::io::Write>(&self, writer: &mut W) -> molecule::io::Result<()> {
         let mut total_size = molecule::NUMBER_SIZE * (Self::FIELD_COUNT + 1);
@@ -2941,6 +2963,8 @@ impl molecule::prelude::Builder for FriendPubkeyBuilder {
         total_size += self.ext_data.as_slice().len();
         offsets.push(total_size);
         total_size += self.subkey_proof.as_slice().len();
+        offsets.push(total_size);
+        total_size += self.web_authn_msg.as_slice().len();
         writer.write_all(&molecule::pack_number(total_size as molecule::Number))?;
         for offset in offsets.into_iter() {
             writer.write_all(&molecule::pack_number(offset as molecule::Number))?;
@@ -2951,6 +2975,7 @@ impl molecule::prelude::Builder for FriendPubkeyBuilder {
         writer.write_all(self.signature.as_slice())?;
         writer.write_all(self.ext_data.as_slice())?;
         writer.write_all(self.subkey_proof.as_slice())?;
+        writer.write_all(self.web_authn_msg.as_slice())?;
         Ok(())
     }
     fn build(&self) -> Self::Entity {
