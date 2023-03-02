@@ -54,6 +54,9 @@ table FriendPubkey {
   // only for subkey
   ext_data: Uint32,   
   subkey_proof: Bytes,
+
+  // only for webAuthn
+  web_authn_msg: Bytes,
 }
 vector FriendPubkeyVec <FriendPubkey>;
 table SocialUnlockEntries {
